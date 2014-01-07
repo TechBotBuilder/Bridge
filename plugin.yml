@@ -1,0 +1,9 @@
+name: Bridge
+main: com.techbotbuilder.bridge.Bridge
+version: 0.5.0
+commands:
+  bridge:
+    description: Create a bridge from where you are standing to where you are looking using the first two materials in your inventory, of specified width.
+    usage: /bridge <width>
+    permission: bridge.create
+    permission-message: You can't create bridges.
