@@ -8,6 +8,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+//import org.bukkit.material.MaterialData;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.Vector;
 
@@ -15,12 +16,12 @@ public class Bridge extends JavaPlugin {
 	
 	@Override
     public void onEnable(){
-        getLogger().info("Enabling Bridges...");
+        getLogger().info("Enabling Traverse...");
     }
  
     @Override
     public void onDisable() {
-        getLogger().info("Disabling Bridges...");
+        getLogger().info("Disabling Traverse...");
     }
     
     public static byte getCardinalDirection(Player player) {
@@ -29,17 +30,17 @@ public class Bridge extends JavaPlugin {
             rotation += 360.0;
         }
          if (0 <= rotation && rotation < 45) { //north, decreases z
-            return 0x2;
-        } else if (45 <= rotation && rotation < 135) { //east, increases x
-            return 0x1;
-        } else if (135 <= rotation && rotation < 225) { //south, increases z
             return 0x3;
-        } else if (225 <= rotation && rotation < 315) { //west, decreases x
-            return 0x0;
-        } else if (315 <= rotation && rotation < 360.0) { //north
+        } else if (45 <= rotation && rotation < 135) { //east, increases x
             return 0x2;
-        } else {
+        } else if (135 <= rotation && rotation < 225) { //south, increases z
             return 0x0;
+        } else if (225 <= rotation && rotation < 315) { //west, decreases x
+            return 0x1;
+        } else if (315 <= rotation && rotation < 360.0) { //north
+            return 0x3;
+        } else {
+            return 0x1;
         }
     }
 
@@ -54,9 +55,28 @@ public class Bridge extends JavaPlugin {
         return b;
     }
     
+    /*public boolean isStair(Material material){
+    	if( material == Material.BIRCH_WOOD_STAIRS || material == Material.ACACIA_STAIRS ||
+    		material == Material.BRICK_STAIRS ||  material == Material.COBBLESTONE_STAIRS
+    		|| material == Material.DARK_OAK_STAIRS || material == Material.JUNGLE_WOOD_STAIRS
+    		|| material == Material.NETHER_BRICK_STAIRS || material == Material.QUARTZ_STAIRS
+    		|| material == Material.SANDSTONE_STAIRS || material == Material.SMOOTH_STAIRS
+    		|| material == Material.WOOD_STAIRS ) return true;
+    	else return false;
+    }*/
     
     @SuppressWarnings("deprecation")
-	public void useVectors(Location loc1, Location loc2, Material material, Material stairmaterial, int width, World world, Player player){
+	public void useVectors(Location loc1, Location loc2, ItemStack material, ItemStack stairmaterial, int width, World world, Player player){
+		Material bridgeid;
+		Material stairid;
+    	try {
+		bridgeid = material.getType();
+		stairid  = stairmaterial.getType();
+		} catch (Error e){
+			player.sendMessage("Invalid Material Type");
+			return;
+		}
+    	short materialdurability = material.getDurability();
     	int PointA_X, PointA_Y, PointA_Z, PointB_X, PointB_Y, PointB_Z;
     	PointA_X = loc1.getBlockX();
     	PointA_Y = loc1.getBlockY();
@@ -78,7 +98,7 @@ public class Bridge extends JavaPlugin {
     	CPY = PointA_Y;
     	CPZ = PointA_Z;
     	float old_y = CPY;
-    	Material level_material = material;
+    	Material level_material = bridgeid;
     	for(int jj=0; jj<N; jj++) {
     		CPX += SX;
     		CPY += SY;
@@ -86,7 +106,7 @@ public class Bridge extends JavaPlugin {
     		byte data = getCardinalDirection(player);
     		char downstairs = 0;
     		if (Math.round(CPY) != Math.round(old_y)) { //determine whether or not to use stairs
-    			level_material = stairmaterial;
+    			level_material = stairid;
     			if(Math.round(CPY) < Math.round(old_y)){
     				switch (data){
     				case 0x0:
@@ -105,7 +125,7 @@ public class Bridge extends JavaPlugin {
     			}
     			old_y = CPY;
     		}else{
-    			level_material = material;
+    			level_material = bridgeid;
     			downstairs = 0;
     		}
     		Block currentblock;
@@ -119,13 +139,15 @@ public class Bridge extends JavaPlugin {
     				return;
     			}
     			currentblock.setType(level_material);
-    			currentblock.setData(data);
+    			/*if (isStair(level_material)) currentblock.setTypeIdAndData(level_material.getId(), data, false);
+    			else*/
+    			currentblock.setData((byte)materialdurability);
     		}
     	}
     }
     
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args){
-    	if(cmd.getName().equalsIgnoreCase("bridge")){
+    	if(cmd.getName().equalsIgnoreCase("traverse")){
     		if (!(sender instanceof Player)) {
     			sender.sendMessage("Bridges can only be created by a player.");
     		} else {
@@ -136,15 +158,8 @@ public class Bridge extends JavaPlugin {
     			Player player = (Player) sender;
     			ItemStack bridge = player.getInventory().getItem(0);
     			ItemStack stair = player.getInventory().getItem(1);
-    			Material bridgeid;
-    			Material stairid;
-    			try {
-    			bridgeid = bridge.getType();
-    			stairid  = stair.getType();
-    			} catch (Error e){
-    				sender.sendMessage("Invalid Material Type");
-    				return false;
-    			}
+    			//MaterialData materialdata = bridge.getData();
+				//MaterialData stairdata = stair.getData();
     			Location location = player.getLocation();
     			Location pointer  = getTargetBlock(player,100).getLocation();
     			World world = player.getWorld();
@@ -152,7 +167,7 @@ public class Bridge extends JavaPlugin {
     			try {width = Integer.parseInt(args[0]);}
     			catch(NumberFormatException e) {return false;}
     			location = location.add(0, -1, 0);
-    			useVectors(location, pointer, bridgeid, stairid, width, world, player);
+    			useVectors(location, pointer, bridge, stair, width, world, player);
     			// HERE ENDS THE PART WHERE ACTIONS WILL HAPPEN BECAUSE OF THE COMMAND
     		}
     		return true;
