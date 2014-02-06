@@ -32,15 +32,15 @@ public class Bridge extends JavaPlugin {
          if (0 <= rotation && rotation < 45) { //north, decreases z
             return 0x3;
         } else if (45 <= rotation && rotation < 135) { //east, increases x
-            return 0x2;
-        } else if (135 <= rotation && rotation < 225) { //south, increases z
             return 0x0;
+        } else if (135 <= rotation && rotation < 225) { //south, increases z
+            return 0x2;
         } else if (225 <= rotation && rotation < 315) { //west, decreases x
             return 0x1;
-        } else if (315 <= rotation && rotation < 360.0) { //north
+        } else if (315 <= rotation && rotation < 360) { //north
             return 0x3;
         } else {
-            return 0x1;
+            return 0x0;
         }
     }
 
@@ -124,8 +124,10 @@ public class Bridge extends JavaPlugin {
     				downstairs = 1;
     			}
     			old_y = CPY;
+    			materialdurability = stairmaterial.getDurability();
     		}else{
     			level_material = bridgeid;
+    			materialdurability = material.getDurability();
     			downstairs = 0;
     		}
     		Block currentblock;
